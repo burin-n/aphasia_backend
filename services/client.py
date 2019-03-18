@@ -50,17 +50,20 @@ class MyClient(WebSocketClient):
     def opened(self):
         #print "Socket opened!"
         def send_data_to_ws():
-            if self.send_adaptation_state_filename is not None:
-                print >> sys.stderr, "Sending adaptation state from %s" % self.send_adaptation_state_filename
-                try:
-                    adaptation_state_props = json.load(open(self.send_adaptation_state_filename, "r"))
-                    self.send(json.dumps(dict(adaptation_state=adaptation_state_props)))
-                except:
-                    e = sys.exc_info()[0]
-                    print >> sys.stderr, "Failed to send adaptation state: ",  e
+            # if self.send_adaptation_state_filename is not None:
+            #     print >> sys.stderr, "Sending adaptation state from %s" % self.send_adaptation_state_filename
+            #     try:
+            #         adaptation_state_props = json.load(open(self.send_adaptation_state_filename, "r"))
+            #         self.send(json.dumps(dict(adaptation_state=adaptation_state_props)))
+            #     except:
+            #         e = sys.exc_info()[0]
+            #         print >> sys.stderr, "Failed to send adaptation state: ",  e
             
+            # with open(self.audiofile, 'rb') as audiostream:
+            if(type(self.audiofile) == type('')):
+                self.audiofile = open(self.audiofile, 'rb')
 
-            with open(self.audiofile, 'rb') as audiostream:
+            with self.audiofile as audiostream:
                 block = audiostream.read(self.byterate//4)
                 while(block != b''):
                     self.send_data(block)
@@ -68,6 +71,7 @@ class MyClient(WebSocketClient):
 
             print ("Audio sent, now sending EOS", file=sys.stderr)
             self.send("EOS")
+            self.audiofile.close()
 
         t = threading.Thread(target=send_data_to_ws)
         t.start()
@@ -75,12 +79,13 @@ class MyClient(WebSocketClient):
 
     def received_message(self, m):
         response = json.loads(str(m))
-
+        # print(response)
         if response['status'] == 0:
             if 'result' in response:
+                # print('hello')
                 if response['result']['final']:
-                    self.final_hyps += [res['transcript'] for res in response['result']['hypotheses']]
-                    print(self.final_hyps, file=sys.stderr)
+                    self.final_hyps += [res for res in response['result']['hypotheses']]
+                    # print('final_hyps', self.final_hyps, file=sys.stderr)
                 # else:
                 #     print_trans = trans.replace("\n", "\\n")
                 #     if len(print_trans) > 80:
@@ -100,17 +105,21 @@ class MyClient(WebSocketClient):
 
 
     def get_full_hyp(self, timeout=60):
-        # return self.final_hyp_queue.get(timeout)
-        return self.final_result
+        self.final_hyp_queue.get(timeout)
+        return list(self.final_hyp_queue.queue)
+        # return self.final_result
+        # print('full_hyp', self.final_hyps)
+        # return self.final_hyps
 
 
     def closed(self, code, reason=None):
         #print "Websocket closed() called"
         #print >> sys.stderr
         # self.final_hyp_queue.put(self.final_hyps)
-        # for hyp in self.final_hyps:
-            # self.final_hyp_queue.put(hyp)
-        self.final_result += self.final_hyps
+        for hyp in self.final_hyps:
+            self.final_hyp_queue.put(hyp)
+        # self.final_result = self.final_hyps
+        # print('final res:', self.final_result)
 
 
 def main():
@@ -128,9 +137,7 @@ def main():
     if content_type == '' and args.audiofile.name.endswith(".raw"):
         content_type = "audio/x-raw, layout=(string)interleaved, rate=(int)%d, format=(string)S16LE, channels=(int)1" %(args.rate/2)
 
-
-
-    ws = MyClient(args.audiofile, args.uri + '?%s' % (urllib.urlencode([("content-type", content_type)])), byterate=args.rate,
+    ws = MyClient(args.audiofile, args.uri + '?%s' % (urllib.parse.urlencode([("content-type", content_type)])), byterate=args.rate,
                   save_adaptation_state_filename=args.save_adaptation_state, send_adaptation_state_filename=args.send_adaptation_state)
     ws.connect()
     result = ws.get_full_hyp()

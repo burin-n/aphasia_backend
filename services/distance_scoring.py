@@ -1,5 +1,7 @@
-class scoring():
+class distance_scoring():
     
+    # x is tuple of three Counter. Each counter includes number of phones in init, vowel, and final
+    # y is list of three phones including init, vowel, and final
     def __call__(self, x, y):
         return self.dist_scoring(x, y)
     

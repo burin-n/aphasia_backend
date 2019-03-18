@@ -1,20 +1,10 @@
 class post_processing():
    
-   
-    def __call__(self, phones):
-        temp = phones
-        while True:
-            phones = self.remove_duplicate(self.remove_interfering(phones))
-            if(temp == phones):
-                break
-            temp = phones
-        return phones
-
-
     def isVow(self, x):
         return x in ['a','aa', 'i', 'ii', 'v', 'vv', 'u', 'uu', 'e', 'ee',
                     'x', 'xx', 'o', 'oo', '@', '@@', 'q', 'qq', 
                     'ia', 'iia', 'va', 'vva', 'ua', 'uua']
+
 
     def isFinal(self, x):
         return x[-1] == '^'
@@ -24,7 +14,7 @@ class post_processing():
         return not self.isVow(x) and not self.isFinal(x)
 
 
-    def post_processing(self, phones):
+    def __call__(self, phones):
         c_i = list() #initial consonant
         v = list() #vowel
         c_f = list() #final consonant
@@ -87,3 +77,13 @@ class post_processing():
             elif(phones[i] != result[-1]):
                 result.append(phones[i])
         return result
+
+
+    def clean(self, phones):
+        temp = phones
+        while True:
+            phones = self.remove_duplicate(self.remove_interfering(phones))
+            if(temp == phones):
+                break
+            temp = phones
+        return phones
