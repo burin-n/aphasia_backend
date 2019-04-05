@@ -18,7 +18,7 @@ class post_processing():
         c_i = list() #initial consonant
         v = list() #vowel
         c_f = list() #final consonant
-        over_spelling = list()    
+        # over_spelling = list()    
         state = 0
         phones = self.clean(phones)
         for i in range(len(phones)):

@@ -74,7 +74,7 @@ class distance_scoring():
         
         dist = ((xi-yi)**2 + (xj-yj)**2)**0.5 + cluster_cost
     #     return dist
-        return min(dist, 4.0)/5.0
+        return min(dist, 4.0)/4.0
         
         
     # VOWEL ---------------------------------------------------------------------
@@ -118,7 +118,7 @@ class distance_scoring():
                     yi = i; yj = j
 
     #     return ( (2*(xi-yi))**2 + (xj-yj)**2 )**0.5
-        return  min(((2*(xi-yi))**2 + (xj-yj)**2 )**0.5, 4.0)/5.0
+        return  min(((2*(xi-yi))**2 + (xj-yj)**2 )**0.5, 4.0)/4.0
 
 
     # FINAL ---------------------------------------------------------------------
@@ -143,7 +143,7 @@ class distance_scoring():
                 if(y in table[i][j]):
                     yi = i; yj = j
     #     return ((xi-yi)**2 + (xj-yj)**2)**0.5    
-        return min(((xi-yi)**2 + (xj-yj)**2)**0.5, 3.3)/4.125
+        return min(((xi-yi)**2 + (xj-yj)**2)**0.5, 4)/4.0
     
         
     # ----------------------------------------------------------------------
