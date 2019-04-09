@@ -16,9 +16,8 @@ scoring = distance_scoring()
 post_processing = post_processing()
 oracle_text = utils.get_oracle()
 
-upload_folder = os.path.join(os.getcwd(), 'cache', 'upload')
-wav_folder = os.path.join(os.getcwd(), 'cache', 'wav')
-
+upload_folder = utils.upload_folder
+wav_folder = utils.wav_folder
 
 
 def create_app(test_config=None):
@@ -77,6 +76,7 @@ def create_app(test_config=None):
         datenow = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         f.write('### ' + datenow + '\n')
         f.write('* incoming ip address: ' + request.remote_addr + '\n')
+        f.write('target audio: ' + audiofile + '\n')
         f.write('* orable: ' + ' '.join(oracle) + '\n')
 
         fr.write('### ' + datenow + '\n')
