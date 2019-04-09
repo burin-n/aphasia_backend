@@ -2,6 +2,11 @@ class distance_scoring():
     
     # x is tuple of three Counter. Each counter includes number of phones in init, vowel, and final
     # y is list of three phones including init, vowel, and final
+    
+    init_gap = 4.0
+    vow_gap = 4.0
+    final_gap = 4.0
+    
     def __call__(self, x, y):
         return self.dist_scoring(x, y)
     
@@ -59,8 +64,10 @@ class distance_scoring():
         table[5].extend(['', 'l', 'j', 'w', ''])
         table[6].extend(['', 'r', '', '', ''])
         
-        cluster_cost = self.get_cluster_cost(x, y)
-        cluster_cost += self.get_cluster_cost(y, x)
+        cluster_cost = 0
+        if(x!= '' and y!=''):
+            cluster_cost = self.get_cluster_cost(x, y)
+            cluster_cost += self.get_cluster_cost(y, x)
         
         x = self.clean_cluster(x)
         y = self.clean_cluster(y)    
@@ -74,7 +81,7 @@ class distance_scoring():
         
         dist = ((xi-yi)**2 + (xj-yj)**2)**0.5 + cluster_cost
     #     return dist
-        return min(dist, 4.0)/4.0
+        return min(dist, self.init_gap)/self.init_gap
         
         
     # VOWEL ---------------------------------------------------------------------
@@ -91,6 +98,7 @@ class distance_scoring():
         # column: FUS, FUL, BUS, BUL, BRS, BRL
         # F: Front, B: Back, U: Unrounded, R: Rounded, S: Short, L: Long
         # row: High, Mid, Low 
+        if(x == ''): return self.vow_gap
 
         table = [[] for i in range(3)]
         table[0].extend(['i', 'ii', 'v', 'vv', 'u', 'uu'])
@@ -118,7 +126,7 @@ class distance_scoring():
                     yi = i; yj = j
 
     #     return ( (2*(xi-yi))**2 + (xj-yj)**2 )**0.5
-        return  min(((2*(xi-yi))**2 + (xj-yj)**2 )**0.5, 4.0)/4.0
+        return  min(((2*(xi-yi))**2 + (xj-yj)**2 )**0.5, self.vow_gap)/self.vow_gap
 
 
     # FINAL ---------------------------------------------------------------------
@@ -143,7 +151,7 @@ class distance_scoring():
                 if(y in table[i][j]):
                     yi = i; yj = j
     #     return ((xi-yi)**2 + (xj-yj)**2)**0.5    
-        return min(((xi-yi)**2 + (xj-yj)**2)**0.5, 4)/4.0
+        return min(((xi-yi)**2 + (xj-yj)**2)**0.5, self.final_gap)/self.final_gap
     
         
     # ----------------------------------------------------------------------
@@ -154,6 +162,10 @@ class distance_scoring():
         
         if(len(target) == 3): t_init, t_vowel, t_final = target
         else: t_init, t_vowel = target
+
+        if(len(init) == 0): init[''] = 1
+        if(len(vowel) == 0): vowel[''] = 1
+        if(len(final) == 0): init[''] = 1    
         
         i_cost = self.get_weighted_score(init, t_init, self.initc_score)
         v_cost = self.get_weighted_score(vowel, t_vowel, self.vow_score)
@@ -163,6 +175,7 @@ class distance_scoring():
 
 
     def get_weighted_score(self, phones, target, func):
+        
         psum = 0
         for phone in phones:
             psum += phones[phone]

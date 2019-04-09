@@ -7,8 +7,10 @@ from services.post_processing import post_processing
 from services.distance_scoring import distance_scoring
 from collections import Counter
 import time
+import datetime
 import services.utils as utils
 from pydub import AudioSegment
+
 
 scoring = distance_scoring()
 post_processing = post_processing()
@@ -69,18 +71,34 @@ def create_app(test_config=None):
         # print(results)
         post_results = []
 
+        f = open('decode.log', 'a')
+        fr = open('result.log', 'a')
+
+        datenow = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        f.write('### ' + datenow + '\n')
+        f.write('* incoming ip address: ' + request.remote_addr + '\n')
+        f.write('* orable: ' + ' '.join(oracle) + '\n')
+
+        fr.write('### ' + datenow + '\n')
+        fr.write('* incoming ip address: ' + request.remote_addr + '\n')
+        fr.write('* orable: ' + ' '.join(oracle) + '\n')            
+
         # post-process each nbest
         for res in results:
-            print(type(res), res)
+            print(res)
             try:
                 processed_transcript = post_processing(res['transcript'].split(' '))
+                print(processed_transcript)
             except Exception as e:
                 processed_transcript= ''
                 print(e)
 
+            f.write('predict: {}\n'.format(res))
+            f.write('post process: {}\n'.format(processed_transcript))
+
             res['processed_transcript'] = processed_transcript
             post_results.append(res)
-
+        
         # merge nbest into usable format
         initc, vow, finalc = Counter(), Counter(), Counter()
         for e in post_results:
@@ -95,14 +113,32 @@ def create_app(test_config=None):
         # scoring
         init_cost, vow_cost, final_cost = scoring( (initc, vow, finalc), oracle )
         ret = {
-                "init" : 1-init_cost,
-                "vow" : 1-vow_cost,
-                "final" : 1-final_cost
-            }
-            
-        return jsonify(
-            score = ret
+                "_init" : round(1-init_cost,2),
+                "_vow" : round(1-vow_cost, 2),
+                "_final" : round(1-final_cost, 2),  
+            }        
+
+        ret_json = jsonify(
+            score = ret,
+            counter = {
+                    "initc" : initc,
+                    "vow" : vow,
+                    "finalc" : finalc
+                }
         )
+
+        f.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
+        f.write("-> initc: {} vow: {} finalc: {}\n".format(round(1-init_cost,2), round(1-vow_cost,2), round(1-final_cost,2) ))
+        f.write('\n\n')
+        f.close()
+        fr.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
+        fr.write("-> initc: {} vow: {} finalc: {}\n".format(round(1-init_cost,2), round(1-vow_cost,2), round(1-final_cost,2) ))
+        fr.write('\n\n')
+        fr.close()
+
+        return ret_json
+
+
         # return "score: {} {} {}".format(1-init_cost, 1-vow_cost, 1-final_cost)
 
 

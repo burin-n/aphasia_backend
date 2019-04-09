@@ -18,10 +18,70 @@ class post_processing():
         c_i = list() #initial consonant
         v = list() #vowel
         c_f = list() #final consonant
-        # over_spelling = list()    
-        state = 0
+        # over_spelling = list()
+
         phones = self.clean(phones)
-        for i in range(len(phones)):
+
+
+        # has_init = False
+        # has_vow = False
+        # has_final = False
+
+        # for i in range(len(phones)-1,-1,-1):
+        #     phone = phones[i]
+        #     if(self.isInit(phone)) has_init = True
+        #     if(self.isVow(phone) and has_init) has_vow = True
+        #     if(self.isFinal(phone) and has_vow) has_final = True
+
+
+        state = 0
+        start_index = 0
+        done = False
+        t_start_index = 0
+        
+
+        while(not done):
+            if(self.isInit(phones[0])): state = 0
+            else: state = 3
+            for i in range(len(phones)):       
+                if(state == 0):
+                    if(self.isInit(phones[i])): pass
+                    elif(self.isVow(phones[i])): state = 1
+                    else: 
+                        state = 3
+                        
+                if(state == 1):
+                    start_index = t_start_index
+                    if(self.isInit(phones[i])): 
+                        t_start_index = i
+                        state = 0
+                    elif(self.isVow(phones[i])): pass
+                    else: state = 2
+                
+                if(state == 2):
+                    if(not self.isFinal(phones[i])):
+                        break
+                
+                if(state == 3): # state == 3
+                    if(self.isInit(phones[i])):
+                        state = 0
+                        t_start_index = i
+
+                print(phones[i], state)
+            print()
+
+            if(state != 2): 
+                temp_phones = self.clean(phones, remInterfere=True)
+                if(temp_phones == phones):
+                    done=True
+                else:
+                    phones=temp_phones
+
+            else: done=True
+
+        state = 0
+        for i in range(start_index,len(phones)):
+            
             if(state == 0):
                 if(self.isInit(phones[i])): c_i.append(phones[i])
                 elif(self.isVow(phones[i])): state = 1
@@ -37,7 +97,7 @@ class post_processing():
                 elif(self.isVow(phones[i])): state = 3
                 else: c_f.append(phones[i])
             
-            else: #state = 3
+            if(state == 3): #state = 3
                 pass
         
         return c_i, v, c_f
@@ -79,11 +139,22 @@ class post_processing():
         return result
 
 
-    def clean(self, phones):
-        temp = phones
-        while True:
-            phones = self.remove_duplicate(self.remove_interfering(phones))
-            if(temp == phones):
-                break
+    def clean(self, phones, remInterfere=False):
+        if(not remInterfere):
+            return self.remove_duplicate(phones)
+        else:
             temp = phones
-        return phones
+            while True:
+                phones = self.remove_duplicate(self.remove_interfering(phones))
+                if(temp == phones):
+                    break
+                temp = phones
+            return phones
+
+
+if __name__ == "__main__":
+    import sys
+    print(sys.argv[1])
+    work = post_processing()
+    print('working..')
+    print(work(sys.argv[1].split(' ')))
