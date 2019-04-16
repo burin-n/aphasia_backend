@@ -4,3 +4,4 @@
 **/venv/**
 **/*cache*/**
 *.log
+clean_cache.sh

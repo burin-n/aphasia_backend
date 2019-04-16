@@ -3,6 +3,7 @@ import os
 upload_folder = os.path.join(os.getcwd(), 'cache', 'upload')
 wav_folder = os.path.join(os.getcwd(), 'cache', 'wav')
 name_size = 4
+empty_char = 'empty'
 
 def secure_filename(filename):
     ext = filename.split('.')[-1]

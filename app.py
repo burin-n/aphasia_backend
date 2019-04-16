@@ -77,7 +77,7 @@ def create_app(test_config=None):
         f.write('### ' + datenow + '\n')
         f.write('* incoming ip address: ' + request.remote_addr + '\n')
         f.write('target audio: ' + audiofile + '\n')
-        f.write('* orable: ' + ' '.join(oracle) + '\n')
+        f.write('* oracle: ' + ' '.join(oracle) + '\n')
 
         fr.write('### ' + datenow + '\n')
         fr.write('* incoming ip address: ' + request.remote_addr + '\n')
@@ -111,12 +111,17 @@ def create_app(test_config=None):
                 finalc[x] += 1
 
         # scoring
-        init_cost, vow_cost, final_cost = scoring( (initc, vow, finalc), oracle )
+        init_score, vow_score, final_score = scoring( (initc, vow, finalc), oracle )
         ret = {
-                "_init" : round(1-init_cost,2),
-                "_vow" : round(1-vow_cost, 2),
-                "_final" : round(1-final_cost, 2),  
-            }        
+            "_init" : init_score,
+            "_vow" : vow_score,
+            "_final" : final_score
+        }
+        # ret = {
+        #         "_init" : round(1-init_cost,2),
+        #         "_vow" : round(1-vow_cost, 2),
+        #         "_final" : round(1-final_cost, 2),  
+        #     }        
 
         ret_json = jsonify(
             score = ret,
@@ -128,11 +133,11 @@ def create_app(test_config=None):
         )
 
         f.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
-        f.write("-> initc: {} vow: {} finalc: {}\n".format(round(1-init_cost,2), round(1-vow_cost,2), round(1-final_cost,2) ))
+        f.write("-> initc: {} vow: {} finalc: {}\n".format(init_score, vow_score, final_score))
         f.write('\n\n')
         f.close()
         fr.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
-        fr.write("-> initc: {} vow: {} finalc: {}\n".format(round(1-init_cost,2), round(1-vow_cost,2), round(1-final_cost,2) ))
+        fr.write("-> initc: {} vow: {} finalc: {}\n".format(init_score, vow_score, final_score))
         fr.write('\n\n')
         fr.close()
 

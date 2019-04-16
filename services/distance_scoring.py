@@ -1,3 +1,5 @@
+from services.utils import empty_char as EMPTY
+
 class distance_scoring():
     
     # x is tuple of three Counter. Each counter includes number of phones in init, vowel, and final
@@ -51,10 +53,12 @@ class distance_scoring():
         return x
 
 
-    def initc_score(self, x,y):
+    def initc_cost(self, x,y):
         #REF table: https://en.wikipedia.org/wiki/Thai_language#Initials
         #column: Labial, Alveolar, Palatal, Velar, Gloattal
         #row: Nasal, Plosive_voice, Plosive_tenuis, Plotsive_aspirated, Fricative, Approximant, Trill
+        if(x==y): return 0
+        
         table = [[] for i in range(7)]
         table[0].extend(['m', 'n', '' , 'ng', ''])
         table[1].extend(['b', 'd', '' , '', ''])
@@ -64,8 +68,12 @@ class distance_scoring():
         table[5].extend(['', 'l', 'j', 'w', ''])
         table[6].extend(['', 'r', '', '', ''])
         
+        # set default
+        if(x == EMPTY): x = 'z'
+        if(y == EMPTY): y = 'z'
+
         cluster_cost = 0
-        if(x!= '' and y!=''):
+        if(x!= EMPTY and y!=EMPTY):
             cluster_cost = self.get_cluster_cost(x, y)
             cluster_cost += self.get_cluster_cost(y, x)
         
@@ -93,12 +101,13 @@ class distance_scoring():
         else: return 4.5
         
         
-    def vow_score(self, x,y):
+    def vow_cost(self, x,y):
         # REF table: https://en.wikipedia.org/wiki/Thai_language#Vowels
         # column: FUS, FUL, BUS, BUL, BRS, BRL
         # F: Front, B: Back, U: Unrounded, R: Rounded, S: Short, L: Long
-        # row: High, Mid, Low 
-        if(x == ''): return self.vow_gap
+        # row: High, Mid, Low
+        if(x == y): return 0
+        elif(x == EMPTY or y == EMPTY): return 1
 
         table = [[] for i in range(3)]
         table[0].extend(['i', 'ii', 'v', 'vv', 'u', 'uu'])
@@ -132,16 +141,19 @@ class distance_scoring():
     # FINAL ---------------------------------------------------------------------
 
         
-    def finalc_score(self, x, y):
+    def finalc_cost(self, x, y):
         #REF table: https://en.wikipedia.org/wiki/Thai_language#Finals
         #column: Labial, Alveolar, Palatal, Velar
         #row: Nasal, Plosive, Approximant
+        if(x == y):
+            return 0
+
         table = [[] for i in range(3)]
         table[0].extend([['m^'], ['n^', 'l^'], [], ['ng^']])
         table[1].extend([['p^', 'f^'], ['t^','s^','ch^'], [], ['k^']])
         table[2].extend([['w^'], [], ['j^'], []])
         
-        #default as (Glottis)
+        #default EMPTY as (Glottis)
         xi = 1; xj = 4; yi = 1; yj = 4
         
         for i in range(3):
@@ -150,7 +162,8 @@ class distance_scoring():
                     xi = i; xj = j
                 if(y in table[i][j]):
                     yi = i; yj = j
-    #     return ((xi-yi)**2 + (xj-yj)**2)**0.5    
+
+#         return ((xi-yi)**2 + (xj-yj)**2)**0.5    
         return min(((xi-yi)**2 + (xj-yj)**2)**0.5, self.final_gap)/self.final_gap
     
         
@@ -158,30 +171,29 @@ class distance_scoring():
 
     def dist_scoring(self, speak, target):
         init, vowel, final = speak     
-        t_final = ''
+        t_final = EMPTY
         
         if(len(target) == 3): t_init, t_vowel, t_final = target
         else: t_init, t_vowel = target
 
-        if(len(init) == 0): init[''] = 1
-        if(len(vowel) == 0): vowel[''] = 1
-        if(len(final) == 0): init[''] = 1    
+        if(len(init) == 0): init[EMPTY] = 1
+        if(len(vowel) == 0): vowel[EMPTY] = 1
+        if(len(final) == 0): final[EMPTY] = 1    
         
-        i_cost = self.get_weighted_score(init, t_init, self.initc_score)
-        v_cost = self.get_weighted_score(vowel, t_vowel, self.vow_score)
-        f_cost = self.get_weighted_score(final, t_final, self.finalc_score)
+        i_score = round(1-self.get_weighted_cost(init, t_init, self.initc_cost),2)
+        v_score = round(1-self.get_weighted_cost(vowel, t_vowel, self.vow_cost),2)
+        f_score = round(1-self.get_weighted_cost(final, t_final, self.finalc_cost),2)
 
-        return i_cost, v_cost, f_cost
+        return i_score, v_score, f_score
 
 
-    def get_weighted_score(self, phones, target, func):
-        
+    def get_weighted_cost(self, phones, target, func):
         psum = 0
         for phone in phones:
             psum += phones[phone]
 
-        cost = 0
+        score = 0
         for phone in phones:
-            cost += (phones[phone]/psum)*func(phone, target)
-
-        return cost 
+            score += (phones[phone]/psum)*func(phone, target)
+     
+        return score 
