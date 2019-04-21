@@ -25,3 +25,17 @@ def get_oracle(file='text'):
             word = line.strip().split(' ')[1:]
             oracle[name] = word
     return oracle
+
+
+def isVow(x):
+    return x in ['a','aa', 'i', 'ii', 'v', 'vv', 'u', 'uu', 'e', 'ee',
+                'x', 'xx', 'o', 'oo', '@', '@@', 'q', 'qq', 
+                'ia', 'iia', 'va', 'vva', 'ua', 'uua']
+
+
+def isFinal(x):
+    return x[-1] == '^'
+
+
+def isInit(x):
+    return not isVow(x) and not isFinal(x)
