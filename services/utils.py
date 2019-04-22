@@ -1,7 +1,11 @@
 import os
 
-upload_folder = os.path.join(os.getcwd(), 'cache', 'upload')
-wav_folder = os.path.join(os.getcwd(), 'cache', 'wav')
+partition = '4'
+upload_folder = os.path.join(os.getcwd(), 'cache', 'upload' + partition)
+wav_folder = os.path.join(os.getcwd(), 'cache', 'wav' + partition)
+log_file = os.path.join(os.getcwd(), 'decode{}.log'.format(partition))
+result_file = os.path.join(os.getcwd(), 'result{}.log'.format(partition))
+
 name_size = 4
 empty_char = 'empty'
 

@@ -17,6 +17,8 @@ post_processing = post_processing()
 oracle_text = utils.get_oracle()
 
 upload_folder = utils.upload_folder
+log_file = utils.log_file
+result_file = utils.result_file
 wav_folder = utils.wav_folder
 
 
@@ -50,6 +52,7 @@ def create_app(test_config=None):
 
 
     @app.route('/query')
+    # def query(audiofile='/home/burin/aphasia_backend/cache/wav/0105.wav', oracle='p aa k^'.split(' ')):
     def query(audiofile, oracle):
         # gstreamer_url = 'ws://161.200.194.159:10000/client/ws/speech'
         gstreamer_url = 'ws://localhost:10000/client/ws/speech'
@@ -66,12 +69,13 @@ def create_app(test_config=None):
 
 
         results = ws.get_full_hyp()
+        print(results)
+
         print('starting postprocessing...')
-        # print(results)
         post_results = []
 
-        f = open('decode.log', 'a')
-        fr = open('result.log', 'a')
+        f = open(log_file, 'a')
+        # fr = open(result_file, 'a')
 
         datenow = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         f.write('### ' + datenow + '\n')
@@ -79,9 +83,9 @@ def create_app(test_config=None):
         f.write('target audio: ' + audiofile + '\n')
         f.write('* oracle: ' + ' '.join(oracle) + '\n')
 
-        fr.write('### ' + datenow + '\n')
-        fr.write('* incoming ip address: ' + request.remote_addr + '\n')
-        fr.write('* orable: ' + ' '.join(oracle) + '\n')            
+        # fr.write('### ' + datenow + '\n')
+        # fr.write('* incoming ip address: ' + request.remote_addr + '\n')
+        # fr.write('* orable: ' + ' '.join(oracle) + '\n')            
 
         # post-process each nbest
         for res in results:
@@ -136,10 +140,10 @@ def create_app(test_config=None):
         f.write("-> initc: {} vow: {} finalc: {}\n".format(init_score, vow_score, final_score))
         f.write('\n\n')
         f.close()
-        fr.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
-        fr.write("-> initc: {} vow: {} finalc: {}\n".format(init_score, vow_score, final_score))
-        fr.write('\n\n')
-        fr.close()
+        # fr.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
+        # fr.write("-> initc: {} vow: {} finalc: {}\n".format(init_score, vow_score, final_score))
+        # fr.write('\n\n')
+        # fr.close()
 
         return ret_json
 
