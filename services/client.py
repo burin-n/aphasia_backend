@@ -109,10 +109,19 @@ class MyClient(WebSocketClient):
                 print("Error message: {}".format(
                     response['message']), file=sys.stderr)
 
-    def get_full_hyp(self, timeout=2):
-        result = self.final_hyp_queue.get(timeout)
-        # print('print from get_full_hyp', list(self.final_hyp_queue.queue))
-        return list(self.final_hyp_queue.queue)
+    def get_full_hyp(self, timeout=5):
+        print('get result')
+        result = []
+        try:
+            result = self.final_hyp_queue.get(timeout=timeout)
+        except Exception as E:
+            print('empty')
+            pass
+        # print('print from get_full_hyp', [result] + list(self.final_hyp_queue.queue))
+        if(result != []):
+            return [result] + list(self.final_hyp_queue.queue)
+        else:
+            return list(self.final_hyp_queue.queue)
         # return self.final_result
         # print('full_hyp', self.final_hyps)
         # return self.final_hyps
