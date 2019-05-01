@@ -129,11 +129,11 @@ def create_app(test_config=None):
 
         ret_json = jsonify(
             score = ret,
-            counter = {
-                    "initc" : initc,
-                    "vow" : vow,
-                    "finalc" : finalc
-                }
+            # counter = {
+            #         "initc" : initc,
+            #         "vow" : vow,
+            #         "finalc" : finalc
+            #     }
         )
 
         f.write("== Counter \n\tinitc: {}\n\tvow: {}\n\tfinalc: {}\n".format(initc, vow, finalc))
