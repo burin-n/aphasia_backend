@@ -1,10 +1,17 @@
 import os
 
-partition = '4'
+partition = '6'
 upload_folder = os.path.join(os.getcwd(), 'cache', 'upload' + partition)
 wav_folder = os.path.join(os.getcwd(), 'cache', 'wav' + partition)
 log_file = os.path.join(os.getcwd(), 'decode{}.log'.format(partition))
 result_file = os.path.join(os.getcwd(), 'result{}.log'.format(partition))
+
+def create_cache_folder():
+    if(not os.path.isdir(upload_folder)):
+        os.makedirs(upload_folder)
+    if(not os.path.isdir(wav_folder)):
+        os.makedirs(wav_folder)
+    
 
 name_size = 4
 empty_char = 'empty'

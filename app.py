@@ -15,6 +15,7 @@ from pydub import AudioSegment
 scoring = distance_scoring()
 post_processing = post_processing()
 oracle_text = utils.get_oracle()
+oracle_text_disabiltiy = utils.get_oracle('text_disability_real')
 
 upload_folder = utils.upload_folder
 log_file = utils.log_file
@@ -30,6 +31,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+
+    utils.create_cache_folder()
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -51,8 +54,13 @@ def create_app(test_config=None):
         return 'Hello, World!'
 
 
-    @app.route('/query')
-    # def query(audiofile='/home/burin/aphasia_backend/cache/wav/0105.wav', oracle='p aa k^'.split(' ')):
+    @app.route('/query', methods=['GET'])
+    def handling_query():
+        audiofile = request.args.get("audio")
+        target = request.args.get('target')
+        return query(audiofile, oracle_text_disabiltiy[target])
+
+
     def query(audiofile, oracle):
         # gstreamer_url = 'ws://161.200.194.159:10000/client/ws/speech'
         gstreamer_url = 'ws://localhost:10000/client/ws/speech'
